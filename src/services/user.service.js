@@ -5,6 +5,7 @@ import {
   getUserPreferencesByUserId,
   setPreference,
 } from "../repositories/user.repository.js";
+import { addMissionToUser as repoAddMission } from "../repositories/user.repository.js";
 
 export const userSignUp = async (data) => {
   const joinUserId = await addUser({
@@ -29,4 +30,18 @@ export const userSignUp = async (data) => {
   const preferences = await getUserPreferencesByUserId(joinUserId);
 
   return responseFromUser({ user, preferences });
+};
+
+export const challengeMission = async (userId, missionId) => {
+  if (!userId || !missionId) {
+    throw new Error("필수 필드 누락");
+  }
+
+  const result = await repoAddMission(userId, missionId);
+
+  if (!result.success) {
+    throw new Error(result.message);
+  }
+
+  return result.memberMissionId;
 };

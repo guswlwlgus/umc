@@ -101,3 +101,33 @@ export const getUserPreferencesByUserId = async (userId) => {
     conn.release();
   }
 };
+
+// member_mission 테이블 사용
+export const addMissionToUser = async (userId, missionId) => {
+  const conn = await pool.getConnection();
+  try {
+    // 이미 도전 중인지 확인
+    const [exist] = await conn.query(
+      `SELECT COUNT(*) as count FROM member_mission WHERE member_id = ? AND mission_id = ?;`,
+      [userId, missionId]
+    );
+
+    if (exist[0].count > 0) {
+      return { success: false, message: "이미 도전 중인 미션입니다." };
+    }
+
+    // 도전 추가
+    const [result] = await conn.query(
+      `INSERT INTO member_mission (member_id, mission_id, status, created_at, updated_at)
+       VALUES (?, ?, 'IN_PROGRESS', NOW(6), NOW(6));`,
+      [userId, missionId]
+    );
+
+    return { success: true, memberMissionId: result.insertId };
+  } catch (err) {
+    throw new Error(`DB 오류: ${err}`);
+  } finally {
+    conn.release();
+  }
+};
+
